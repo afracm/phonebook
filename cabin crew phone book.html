@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cabin Crew Contact Numbers</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-radius: 10px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    .legend {
+      text-align: center;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+    .legend span {
+      display: inline-block;
+      padding: 5px 15px;
+      border-radius: 5px;
+      margin: 5px;
+      color: white;
+    }
+    .legend .senior { background-color: green; }
+    .legend .junior { background-color: orange; }
+    .legend .trainee { background-color: red; }
+    .search-container {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    #myInput {
+      width: 80%;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 50px;
+      outline: none;
+      transition: all 0.3s;
+    }
+    #myInput:focus {
+      border-color: #3498db;
+      box-shadow: 0 0 10px rgba(52,152,219,0.2);
+    }
+    .contact-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    .contact-card {
+      padding: 20px;
+      border-radius: 10px;
+      color: white;
+      text-align: center;
+      transition: transform 0.3s;
+    }
+    .contact-card.senior { background-color: green; }
+    .contact-card.junior { background-color: orange; }
+    .contact-card.trainee { background-color: red; }
+    .contact-card:hover {
+      transform: translateY(-5px);
+    }
+    .contact-name {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .contact-number {
+      font-size: 16px;
+      color: white;
+      text-decoration: none;
+    }
+    .contact-number:hover {
+      text-decoration: underline;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+      color: #999;
+    }
+  </style>
+  <script>
+    // Function to load contacts from your Google Sheet
+    function loadContactsFromGoogleSheet() {
+      // Replace with your actual sheet ID and sheet name
+      const sheetID = "1Mt5sVKofOKfSy0JS_V6MTPfrCeYGfPGA596GZtmExTQ";
+      const sheetName = "Contacts";
+      const apiURL = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&sheet=${sheetName}`;
+      
+      fetch(apiURL)
+        .then(response => response.text())
+        .then(data => {
+          // Remove the Google Sheets specific prefix/suffix to get valid JSON
+          const jsonData = JSON.parse(data.substring(47, data.length - 2));
+          // rows holds an array of rows from your sheet
+          const rows = jsonData.table.rows;
+
+          // Map the rows into contacts.
+          // IMPORTANT: This code assumes the first row in your sheet is the header,
+          // and the data rows start from the second row.
+          // If your headers are in row 1, then the values in each row are in row.c[0], row.c[1], etc.
+          const contacts = rows.map(row => {
+            // If any cell is empty, .v might be null so we add a fallback empty string
+            return {
+              name: row.c[0] && row.c[0].v ? row.c[0].v : "",
+              number: row.c[1] && row.c[1].v ? row.c[1].v.toString() : "",
+              seniority: row.c[2] && row.c[2].v ? row.c[2].v.toLowerCase() : ""
+            };
+          });
+          displayContacts(contacts);
+        })
+        .catch(error => console.error("Error loading Google Sheets data:", error));
+    }
+
+    // Function to display contacts on the page
+    function displayContacts(contacts) {
+      const contactList = document.getElementById("contactList");
+      contactList.innerHTML = "";
+      contacts.forEach(contact => {
+        // Only display a contact if the name field is not empty
+        if (contact.name.trim() !== "") {
+          const card = document.createElement("div");
+          // Add a class based on seniority (senior, junior, trainee)
+          card.classList.add("contact-card", contact.seniority);
+          card.innerHTML = `
+            <div class="contact-name">${contact.name}</div>
+            <a href="tel:${contact.number}" class="contact-number">${contact.number}</a>
+          `;
+          contactList.appendChild(card);
+        }
+      });
+    }
+
+    // Simple search function to filter contacts by name
+    function searchFunction() {
+      const input = document.getElementById("myInput").value.toUpperCase();
+      const cards = document.getElementsByClassName("contact-card");
+      for (let i = 0; i < cards.length; i++) {
+        const name = cards[i].querySelector(".contact-name").textContent;
+        cards[i].style.display = name.toUpperCase().includes(input) ? "" : "none";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadContactsFromGoogleSheet);
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Cabin Crew Contact Numbers</h1>
+
+    <!-- Color Code Legend -->
+    <div class="legend">
+      <span class="senior">Senior</span>
+      <span class="junior">Junior</span>
+      <span class="trainee">Trainee</span>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+      <input type="text" id="myInput" placeholder="Search for names..." onkeyup="searchFunction()">
+    </div>
+
+    <!-- Contact List (populated dynamically) -->
+    <div class="contact-list" id="contactList"></div>
+  </div>
+
+  <footer>
+    &copy; 2024 Cabin Crew Directory | Design by AFKA
+  </footer>
+</body>
+</html>
