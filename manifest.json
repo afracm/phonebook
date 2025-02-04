@@ -1,7 +1,20 @@
 {
-  "name": "Crew Contact Directory",
-  "theme_color": "#000000",
-  "background_color": "#000000",
-  "short_name": "CC Directory",
-  "description": "Contact and Seniority"
-}
+    "name": "Crew Dirc..",
+    "short_name": "CrewDirec",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#f9f9f9",
+    "theme_color": "#3498db",
+    "icons": [
+      {
+        "src": "icon-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "icon-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }
